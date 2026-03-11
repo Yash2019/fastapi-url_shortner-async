@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from db import get_db
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from project.schemas import UrlResponse, UrlRequest
-from project.logic import shorten, query
+from project.logic import shorten, query, log_click
 
 router = APIRouter(prefix='/api')
 
@@ -12,9 +12,17 @@ async def url_schoretn_endpoint(data: UrlRequest, db: AsyncSession = Depends(get
     return await shorten(data.long_url, db)
 
 @router.get('/{short_code}')
-async def get_code_endpoint(short_code: str, db: AsyncSession = Depends(get_db)):
+async def get_code_endpoint(short_code: str, request: Request, background_tasks: BackgroundTasks,
+                            db: AsyncSession = Depends(get_db)):
+    
     url = await query(short_code, db)
-
+        
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
+
+    ip_address = request.client.host
+    user_agent = request.headers.get('user-agent')
+    referer = request.headers.get('referer')
+    background_tasks.add_task(log_click, url.id, ip_address, user_agent, referer)
+
     return RedirectResponse(url=url.long_url, status_code=307)

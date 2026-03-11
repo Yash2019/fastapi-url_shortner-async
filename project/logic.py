@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from project.models import UrlShortner
+from project.models import UrlShortner, Clicks
 from sqlalchemy import select
+from db import SessionLocal
 
 def base62encoding(number: int) -> str:
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -30,3 +31,14 @@ async def query(short_code: str, db:AsyncSession):
     result = await db.execute(stmt)
     url = result.scalar_one_or_none()
     return url
+
+async def log_click(url_id: int, ip_address: str, user_agent: str = None, referer: str = None):
+    async with SessionLocal() as db:
+        click = Clicks(
+            url_id=url_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            referer=referer
+        )
+        db.add(click)
+        await db.commit()

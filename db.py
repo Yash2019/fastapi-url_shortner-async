@@ -1,13 +1,14 @@
 from configure import config
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
+
 
 engine = create_async_engine(
     url=config.DATABASE_URL,
     echo=True
 )
 
-SessionLocal = sessionmaker(
+SessionLocal = async_sessionmaker(
     bind=engine,
     class_= AsyncSession,
     expire_on_commit=False
