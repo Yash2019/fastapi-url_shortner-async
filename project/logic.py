@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from project.models import UrlShortner, Clicks
-from sqlalchemy import select
+from sqlalchemy import select, func
 from db import SessionLocal
 
 def base62encoding(number: int) -> str:
@@ -42,3 +42,12 @@ async def log_click(url_id: int, ip_address: str, user_agent: str = None, refere
         )
         db.add(click)
         await db.commit()
+
+async def total_clicks(url_id: int, db:AsyncSession):
+    stmt = select(func.count(Clicks.id)).where(Clicks.url_id == url_id)
+    result = await db.execute(stmt)
+    clicks = result.scalar_one_or_none()
+
+    return clicks   
+
+async def clicks_per_day()
