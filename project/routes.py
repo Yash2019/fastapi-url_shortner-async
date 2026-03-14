@@ -3,7 +3,7 @@ from db import get_db
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from project.schemas import UrlResponse, UrlRequest
-from project.logic import shorten, query, log_click, total_clicks
+from project.logic import shorten, query, log_click, total_clicks, clicks_per_day
 
 router = APIRouter(prefix='/api')
 
@@ -30,4 +30,7 @@ async def get_code_endpoint(short_code: str, request: Request, background_tasks:
 @router.get('/count_total_clicks_per_link/{url_id}')
 async def total_clicks_endpoint(url_id: int, db:AsyncSession = Depends(get_db)):
 
-    return await total_clicks(url_id, db)
+    clicks = await total_clicks(url_id, db)
+    per_day_clicks = await clicks_per_day(url_id, db)
+
+    return clicks, per_day_clicks

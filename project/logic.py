@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from project.models import UrlShortner, Clicks
 from sqlalchemy import select, func
 from db import SessionLocal
+from datetime import datetime, timedelta
 
 def base62encoding(number: int) -> str:
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -50,4 +51,13 @@ async def total_clicks(url_id: int, db:AsyncSession):
 
     return clicks   
 
-async def clicks_per_day()
+async def clicks_per_day(url_id: int, db:AsyncSession):
+    day = func.date_trunc('day', Clicks.timestamp)
+    stmt = (
+        select(day, func.count(Clicks.id))
+        .where(Clicks.url_id == url_id, Clicks.timestamp >= datetime.now() - timedelta(days=30))
+        .group_by(day)
+        .order_by(day)
+    )
+    result = await db.execute(stmt)
+    return result.all()
