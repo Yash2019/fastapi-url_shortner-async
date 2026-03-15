@@ -27,10 +27,20 @@ async def get_code_endpoint(short_code: str, request: Request, background_tasks:
 
     return RedirectResponse(url=url.long_url, status_code=307)
 
-@router.get('/count_total_clicks_per_link/{url_id}')
-async def total_clicks_endpoint(url_id: int, db:AsyncSession = Depends(get_db)):
+@router.get('/stats/{short_code}')
+async def total_clicks_endpoint(short_code: str, db:AsyncSession = Depends(get_db)):
+    url = await query(short_code, db)
 
-    clicks = await total_clicks(url_id, db)
-    per_day_clicks = await clicks_per_day(url_id, db)
+    if not url:
+        raise HTTPException(status_code=404, detail='Url Not found')
+    
+    clicks = await total_clicks(url.id, db)
+    per_day_clicks = await clicks_per_day(url.id, db)
 
-    return clicks, per_day_clicks
+    return {
+        "total_clicks": clicks,
+        "clicks_per_day": [
+            {"day": row[0].isoformat(), "count": row[1]}
+            for row in per_day_clicks
+        ]
+    }
