@@ -27,7 +27,7 @@ async def authenticate_user(db: AsyncSession, username: str, password: str) -> U
     user = await get_user(db, username)
     if not user:
         return False
-    if not await verify_password(password, user.hased_password):
+    if not await verify_password(password, user.hashed_password):
         return None
     return user
 
@@ -37,4 +37,4 @@ async def create_access_token(data: dict, expire_delta: timedelta | None = None)
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expire_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, Config.SECRET_KEY, algorithm=Config.ALGORITHM)
+    return jwt.encode(to_encode, config.SECRET_KEY, algorithm=config.ALGORITHM)

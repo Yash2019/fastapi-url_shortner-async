@@ -52,3 +52,4 @@ pytest-mock
 alembic
 slowapi
 redis[asyncio]
+redis[hiredis]
