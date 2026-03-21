@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from db import creat_table
 from project.routes import router
 from auth.routes import auth_routes
+from rate_limiter.routes import limiter
 
 app = FastAPI()
 
@@ -9,10 +10,15 @@ app = FastAPI()
 async def on_startup() -> None:
     await creat_table()
 
+
+
 app.include_router(
     auth_routes,
 )
 
+app.include_router(
+    limiter
+)
 
 app.include_router(
     router

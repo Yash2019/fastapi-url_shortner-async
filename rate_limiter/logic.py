@@ -4,8 +4,9 @@ from rate_limiter.models import APIKey
 import hashlib
 
 
+async def generate_api_key(user_id: int, db: AsyncSession):
 
-'''
+    '''
     secrets.token_urlsafe gives us raw string such as xK9mQ2..., which is raw so
     if db leaks then there is a problem 
 
@@ -18,9 +19,10 @@ import hashlib
     given the hash, you cannot get the original string back. 
     That's the entire point. It always produces a 256-bit (32 byte) output regardless of input size
 
-    .hexdigest() — those 32 bytes expressed as a hex string (0-9, a-f). Each byte becomes 2 hex chars, so output is always 64 characters.
+    .hexdigest() — those 32 bytes expressed as a hex string (0-9, a-f). Each byte becomes 2 hex chars, 
+    so output is always 64 characters.
+    
 '''
-async def generate_api_key(user_id: int, db: AsyncSession):
 
     raw = secrets.token_urlsafe(32) 
 
@@ -32,4 +34,11 @@ async def generate_api_key(user_id: int, db: AsyncSession):
     db.add(new_key)
     await db.commit()
     await db.refresh(new_key)
-    return new_key
+
+    #return dict not raw tupal, we return time beacause we need to match our
+    #pydantic schema
+    return {
+        'key': raw,
+        'created_at': new_key.created_at
+    }
+

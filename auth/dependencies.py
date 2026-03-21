@@ -10,6 +10,11 @@ from jwt.exceptions import InvalidTokenError
 from configure import config
 from auth.logic import get_user, get_password_hash, authenticate_user, create_access_token
 from auth.schemas import UserRegistration
+#------------------------------other stuff------------------------#
+from fastapi import Request #to get x-api-header
+import hashlib #to hash the raw api key
+from rate_limiter.models import APIKey
+from auth.models import User
 
 '''
 What does this function do?
@@ -97,3 +102,41 @@ async def login(db: AsyncSession, username:str, password: str):
         'access_token': access_token,
         'token_type': 'bearer'
     }
+
+
+async def get_current_user_flexible(request: Request, 
+                                    db: AsyncSession = Depends(get_db)):
+    api_key = request.headers.get('x-api-key')
+
+    if api_key:
+        hash = hashlib.sha256(api_key.encode()).hexdigest()
+
+        stmt = select(APIKey).where(APIKey.key == hash)
+        result = await db.execute(stmt)
+
+        key = result.scalar_one_or_none()
+
+        if key is None:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, 
+                                detail='Invalid Api key')
+        if key:
+            stmt = select(User).where(User.id == key.user_id) #return that user with same key
+            result = await db.execute(stmt)
+
+            user = result.scalar_one_or_none()
+            return user
+        
+        '''
+        for users who are not logged in 
+
+        get 'authorization' header which returnes 'Bearer' sdhbhwb87w2
+        then '' retures empty strings instes of None is auth header does not exists
+        .replace('Bearer ', '') strips 'bearer' leaving just tokens
+        
+        '''
+        
+    else:
+        token = request.headers.get('authorization', '').replace('Bearer ', '')
+        return await get_current_user(token, db)
+
+
