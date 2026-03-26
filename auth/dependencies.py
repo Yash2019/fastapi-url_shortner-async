@@ -106,6 +106,12 @@ async def login(db: AsyncSession, username:str, password: str):
 
 async def get_current_user_flexible(request: Request, 
                                     db: AsyncSession = Depends(get_db)):
+    
+    '''
+    ok so we are creating a new way to protect end point which is you can either login and get the
+    api token or you can use the end point without logic as long as you have the api key
+    it will still work without jtw auth token
+    '''
     api_key = request.headers.get('x-api-key')
 
     if api_key:

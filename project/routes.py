@@ -6,14 +6,14 @@ import json
 from database.redis_client import redis
 from project.schemas import UrlResponse, UrlRequest
 from project.logic import shorten, query, log_click, total_clicks, clicks_per_day
-from auth.dependencies import get_current_user
+from auth.dependencies import get_current_user, get_current_user_flexible
 from auth.models import User
 
 router = APIRouter(prefix='/api')
 
 @router.post('/url_shortner', response_model=UrlResponse)
 async def url_schoretn_endpoint(data: UrlRequest, db: AsyncSession = Depends(get_db),
-                                current_user: User = Depends(get_current_user)):
+                                current_user: User = Depends(get_current_user_flexible)):
     return await shorten(data.long_url, db)
 
 @router.get('/{short_code}')
