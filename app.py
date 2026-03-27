@@ -3,6 +3,7 @@ from db import creat_table
 from project.routes import router
 from auth.routes import auth_routes
 from rate_limiter.routes import limiter
+from rate_limiter.middleware import RateLimiMiddleware
 
 app = FastAPI()
 
@@ -24,3 +25,6 @@ app.include_router(
     router
 )
 
+app.add_middleware(
+    RateLimiMiddleware
+    )

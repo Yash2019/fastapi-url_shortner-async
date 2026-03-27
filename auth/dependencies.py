@@ -115,9 +115,9 @@ async def get_current_user_flexible(request: Request,
     api_key = request.headers.get('x-api-key')
 
     if api_key:
-        hash = hashlib.sha256(api_key.encode()).hexdigest()
+        hashed = hashlib.sha256(api_key.encode()).hexdigest()
 
-        stmt = select(APIKey).where(APIKey.key == hash)
+        stmt = select(APIKey).where(APIKey.key == hashed)
         result = await db.execute(stmt)
 
         key = result.scalar_one_or_none()
