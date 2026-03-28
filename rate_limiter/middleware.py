@@ -6,7 +6,7 @@ from sqlalchemy import select
 from rate_limiter.models import APIKey
 from db import SessionLocal
 import jwt
-from jose import JWTError
+from jwt.exceptions import PyJWTError
 from configure import config
 from database.redis_client import redis
 
@@ -47,6 +47,8 @@ class RateLimiMiddleware(BaseHTTPMiddleware):
         
         # 1. Code HERE runs BEFORE the route
 
+        if request.url.path.startswith("/api") and request.method == 'GET':
+            return await call_next(request)
         '''
         Checks if the request sent an x-api-key header
 If yes → hashes it with SHA-256 (because raw keys are never stored in DB, only their hashes)
@@ -81,7 +83,7 @@ Pulls user_id from that row and sets limit = 100 (free user rate limit)
                 user_identifier  = payload.get('sub')
                 limit = 10
 
-            except JWTError: 
+            except PyJWTError: 
                 return Response("Unauthorized", status_code=401)
             
         redis_key = f"rate_limiter:{user_identifier}"
