@@ -11,7 +11,13 @@ import anyio
 
 password_hash = PasswordHash.recommended()
 
-
+'''
+anyio.to_thread.run_sync. Why? 
+Because bcrypt (which pwdlib uses under the hood) is CPU-bound and blocking.
+FastAPI runs on an async event loop — if you block it with bcrypt, 
+every other request waits. 
+run_sync offloads it to a thread so the event loop stays free
+'''
 async def verify_password(plain_password: str, hashed_password: str) -> bool:
     func = partial(password_hash.verify, plain_password, hashed_password)
     return await anyio.to_thread.run_sync(func)

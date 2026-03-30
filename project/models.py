@@ -10,6 +10,7 @@ class UrlShortner(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     long_url: Mapped[str] = mapped_column(nullable=False)
     short_url: Mapped[str] = mapped_column(nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(nullable=True) #we are not doinf server default as we take it as input
 
 class Clicks(Base):
     __tablename__ = 'clicks'

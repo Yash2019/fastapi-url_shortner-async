@@ -39,6 +39,8 @@ Request hits route
     → return user object to your route handler
 '''
 
+
+#header extractor
 oauth_schema = OAuth2PasswordBearer(tokenUrl='login')
 
 
@@ -55,6 +57,7 @@ async def get_current_user(
         if username is None:
             raise credential_exceptions
         
+    #If the token is expired, tampered, or malformed, InvalidTokenError is raised  
     except InvalidTokenError:
         raise credential_exceptions
     
@@ -109,7 +112,7 @@ async def get_current_user_flexible(request: Request,
     
     '''
     ok so we are creating a new way to protect end point which is you can either login and get the
-    api token or you can use the end point without logic as long as you have the api key
+    api token or you can use the end point without login as long as you have the api key
     it will still work without jtw auth token
     '''
     api_key = request.headers.get('x-api-key')
@@ -140,7 +143,7 @@ async def get_current_user_flexible(request: Request,
         .replace('Bearer ', '') strips 'bearer' leaving just tokens
         
         '''
-        
+    #fall back to jwt    
     else:
         token = request.headers.get('authorization', '').replace('Bearer ', '')
         return await get_current_user(token, db)

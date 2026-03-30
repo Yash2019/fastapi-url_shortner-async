@@ -8,13 +8,14 @@ from project.schemas import UrlResponse, UrlRequest
 from project.logic import shorten, query, log_click, total_clicks, clicks_per_day
 from auth.dependencies import get_current_user, get_current_user_flexible
 from auth.models import User
+from datetime import datetime, timezone
 
 router = APIRouter(prefix='/api')
 
 @router.post('/url_shortner', response_model=UrlResponse)
 async def url_schoretn_endpoint(data: UrlRequest, db: AsyncSession = Depends(get_db),
                                 current_user: User = Depends(get_current_user_flexible)):
-    return await shorten(data.long_url, db)
+    return await shorten(data.long_url, data.expires_at, db)
 
 @router.get('/{short_code}')
 async def get_code_endpoint(short_code: str, request: Request, background_tasks: BackgroundTasks,
@@ -24,6 +25,9 @@ async def get_code_endpoint(short_code: str, request: Request, background_tasks:
         
     if not url:
         raise HTTPException(status_code=404, detail="Short URL not found")
+    #is expire time given   whats the expiry time and delete it immediately(soft delete) background worker will delete it after 30 days
+    if url.expires_at and url.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail='link has been deleted')
 
     ip_address = request.client.host
     user_agent = request.headers.get('user-agent')

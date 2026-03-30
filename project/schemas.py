@@ -1,4 +1,7 @@
 from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
+
 
 class UrlResponse(BaseModel):
     short_url: str
@@ -6,3 +9,5 @@ class UrlResponse(BaseModel):
 
 class UrlRequest(BaseModel):
     long_url: str
+    expires_at: Optional[datetime] = None
+

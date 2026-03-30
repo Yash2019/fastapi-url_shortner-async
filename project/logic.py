@@ -2,7 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from project.models import UrlShortner, Clicks
 from sqlalchemy import select, func
 from db import SessionLocal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import delete
+
 
 def base62encoding(number: int) -> str:
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -15,8 +17,8 @@ def base62encoding(number: int) -> str:
         number = number // 62
     return ''.join(result[::-1])
 
-async def shorten(long_url: str, db: AsyncSession):
-    new_url = UrlShortner(long_url=long_url, short_url="temp")
+async def shorten(long_url: str, expires_at: datetime, db: AsyncSession):
+    new_url = UrlShortner(long_url=long_url, expires_at=expires_at, short_url="temp")
     db.add(new_url)
     await db.commit()
     await db.refresh(new_url)
@@ -61,3 +63,15 @@ async def clicks_per_day(url_id: int, db:AsyncSession):
     )
     result = await db.execute(stmt)
     return result.all()
+
+async def del_url(db: AsyncSession):
+    #calculate 30 days ago
+    thirty_days = datetime.now(timezone.utc) - timedelta(days=30)
+
+
+
+    stmt = delete(UrlShortner).where(UrlShortner.expires_at != None,
+                                     UrlShortner.expires_at<thirty_days)
+    
+    await db.execute(stmt)
+    await db.commit()
