@@ -4,6 +4,8 @@ from sqlalchemy import select, func
 from db import SessionLocal
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import delete
+import json
+from database.redis_client import redis
 
 
 def base62encoding(number: int) -> str:
@@ -35,7 +37,7 @@ async def query(short_code: str, db:AsyncSession):
     url = result.scalar_one_or_none()
     return url
 
-async def log_click(url_id: int, ip_address: str, user_agent: str = None, referer: str = None):
+async def log_click(url_id: int, ip_address: str, short_code: str, user_agent: str = None, referer: str = None,):
     async with SessionLocal() as db:
         click = Clicks(
             url_id=url_id,
@@ -45,6 +47,15 @@ async def log_click(url_id: int, ip_address: str, user_agent: str = None, refere
         )
         db.add(click)
         await db.commit()
+
+        click_data = {
+            'ip_address': ip_address,
+            'user_agent': user_agent,
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+
+        await redis.publish(f'clicks:{short_code}', json.dumps(click_data))
+
 
 async def total_clicks(url_id: int, db:AsyncSession):
     stmt = select(func.count(Clicks.id)).where(Clicks.url_id == url_id)
