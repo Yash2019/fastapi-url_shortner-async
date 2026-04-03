@@ -2,7 +2,7 @@
 
 A high-performance URL shortener built incrementally. It scales from a simple redirect service to a fully-featured analytics platform with JWT authentication, custom API keys with sliding-window rate limiting, and real-time click streaming via WebSockets.
 
-## 🚀 Features (Incremental Phases)
+## Features (Incremental Phases)
 
 1. **Core Shortening**: Fast async generation and redirection using Base62 encoding.
 2. **User Authentication**: Secure user registration, login, and JWT access tokens.
@@ -12,14 +12,14 @@ A high-performance URL shortener built incrementally. It scales from a simple re
 6. **Scheduled Maintenance**: Background worker powered by `asyncio` that cleans up links expired over 30 days ago.
 7. **Real-time WebSockets**: Live event streaming. Connect via WebSocket to watch clicks on your short link happen in real-time, powered by Redis Pub/Sub.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Framework:** FastAPI (Python)
 *   **Database:** PostgreSQL (with Async SQLAlchemy)
 *   **Cache & Pub/Sub:** Redis (`redis.asyncio`)
 *   **Security:** `pwdlib` (bcrypt), JWT, SHA-256 for API keys.
 
-## ⚙️ Local Setup
+##  Local Setup
 
 1. **Clone the repo and install dependencies:**
    ```bash
@@ -37,12 +37,13 @@ ALGORITHM=HS256
 uvicorn app:app --reload
 
  Core API Endpoints
-Auth & Users
-POST / - Register a new user
-POST /login - Get a JWT token
-POST /api/api-keys - Generate a hashed API key for higher rate limits
-Links
-POST /api/url_shortner - Create a new short link (requires Auth)
-GET /api/{short_code} - Redirect to long URL and log click
-GET /api/stats/{short_code} - Get click analytics (Cached)
-WS /api/links/{short_code}/live - WebSocket connection for real-time click notifications
+## Auth & Users
+1. POST / - Register a new user
+2. POST /login - Get a JWT token
+3. POST /api/api-keys - Generate a hashed API key for higher rate limits
+
+## Links
+1. POST /api/url_shortner - Create a new short link (requires Auth)
+2. GET /api/{short_code} - Redirect to long URL and log click
+3. GET /api/stats/{short_code} - Get click analytics (Cached)
+4. WS /api/links/{short_code}/live - WebSocket connection for real-time click notifications
